@@ -110,7 +110,7 @@ class FlickVideoManager extends ChangeNotifier {
     //  Change the videoPlayerController with the new controller,
     // notify the controller change and remove listeners from the old controller.
     VideoPlayerController? oldController = videoPlayerController;
-    _flickManager.flickControlManager!.pause();
+    _flickManager.flickControlManager?.pause();
     _videoPlayerController = newController;
     oldController?.removeListener(_videoListener);
     videoPlayerController!.addListener(_videoListener);
@@ -127,7 +127,7 @@ class FlickVideoManager extends ChangeNotifier {
     // (User can initialize the video while passing to flick).
     if (!videoPlayerController!.value.isInitialized && autoInitialize) {
       try {
-        await videoPlayerController!.initialize();
+        await videoPlayerController?.initialize();
       } catch (err) {
         _flickManager._handleErrorInVideo();
       }
@@ -137,11 +137,27 @@ class FlickVideoManager extends ChangeNotifier {
     // used again).
     if (videoPlayerController!.value.position ==
         videoPlayerController!.value.duration) {
-      videoPlayerController!
-          .seekTo(Duration(hours: 0, minutes: 0, seconds: 0, milliseconds: 0));
+      videoPlayerController?.seekTo(
+        Duration(
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          milliseconds: 0,
+        ),
+      );
     }
+    final BuildContext? buildContext = _flickManager._context;
 
-    if (autoPlay && ModalRoute.of(_flickManager._context!)!.isCurrent) {
+    if (buildContext == null) {
+      _notify();
+      return;
+    }
+    final ModalRoute? _modalRoute = ModalRoute.of(_flickManager._context!);
+    if (_modalRoute == null) {
+      _notify();
+      return;
+    }
+    if (autoPlay && _modalRoute.isCurrent) {
       //Chrome's autoplay policies are simple:
       //Muted autoplay is always allowed.
       if (kIsWeb) _flickManager.flickControlManager!.mute();
